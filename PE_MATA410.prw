@@ -4,17 +4,20 @@
 
 User Function M410AGRV
 
-	Local nPosPrcUnit    := Ascan(aHeader, {|x| AllTrim(x[2]) == "C6_PRUNIT"})
+	// Local nPosPrcUnit    := Ascan(aHeader, {|x| AllTrim(x[2]) == "C6_PRUNIT"})
 	Local nPosPrcVen    := Ascan(aHeader, {|x| AllTrim(x[2]) == "C6_PRCVEN"})
 	Local nPosDes    := Ascan(aHeader, {|x| AllTrim(x[2]) == "C6_DESCONT"})
 	Local nPosVlDes    := Ascan(aHeader, {|x| AllTrim(x[2]) == "C6_VALDESC"})
 	Local nPosYPrcVe    := Ascan(aHeader, {|x| AllTrim(x[2]) == "C6_YPRCVE"})
 	Local nPosYDesc    := Ascan(aHeader, {|x| AllTrim(x[2]) == "C6_YDESCON"})
 	Local nPosYVlDes    := Ascan(aHeader, {|x| AllTrim(x[2]) == "C6_YVALDES"})
+	Local cCodProd    := Ascan(aHeader, {|x| AllTrim(x[2]) == "C6_PRODUTO"})
+
 	Local nTotalPrcVen := 0
 	Local nTotalPrcUnit := 0
 	Local nTotalDesc := 0
-	
+	Local cAux := ""
+
 	Private cComAuto := AllTrim(M->C5_YCOMAUT) // Recebendo o valor se a comissão vai ser aplicada automáticamente 1 para Automático 2 para Manual
 	Private cZeraDesc := AllTrim(M->C5_YDESCNF) // Recebendo o valor se o desconto vai ser levado para a nota fiscal ou não. Valor 1 para Sim e Valor 2 para não
 
@@ -22,9 +25,12 @@ User Function M410AGRV
 	If(cComAuto == '1') //Opção Automática no Cálculo de comissão.
 		For nX := 1 to Len(aCols)
 			nTotalPrcVen	+= aCols[nX, nPosPrcVen]
-			nTotalPrcUnit 	+= aCols[nX, nPosPrcUnit]
-		next
+			cAux := aCols[nX, cCodProd]
+			// nTotalPrcUnit 	+= aCols[nX, nPosPrcUnit]
+			nTotalPrcUnit 	+= POSICIONE("SB1",1,xFilial("SB1")+cAux,"B1_PRV1")              
+			// nTotalPrcUnit 	+= POSICIONE("SB1",1,xFilial("SB1")+SB1->B1_COD,"B1_PRV1")              
 
+		next
 
 		nTotalDesc:= 	(-100*(nTotalPrcVen / nTotalPrcUnit))+100
 
@@ -47,28 +53,6 @@ User Function M410AGRV
 		next
 
 	EndIf
-
-	// DBSelectArea("SC5")
-	// SC5->(DBSetOrder(1)) //Posiciona no índice 1
-	// SC5->(DbGoTop())
-
-	// Local lRet      := .t.
-	// Local nX        := 0
-	// Local nTotVend  := 0
-	// Local nTotUnit  := 0
-	// Local nPerDesc  := 0
-	// Local lRecalc   := .F.
-
-	// Local nPosVen   := Ascan(aHeader, {|x| AllTri	m(x[2]) == "C6_PRCVEN"})
-	// Local nPosUni   := Ascan(aHeader, {|x| AllTrim(x[2]) == "C6_PRUNIT"})
-
-	// For nX := 1 to Len(aCols)
-    //     ConOut("test")
-    // next
-
-	// if cComAuto == '2' //Se o usuário selecionar Manual no valor da comissão, fazer o cálculo manualmente
-	
-	// EndIf
 
 return
 

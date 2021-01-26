@@ -44,6 +44,9 @@ Static Function ModelDef()
     Local oStruCab     := FWFormStruct(1, 'ZA3', {|cCampo| AllTRim(cCampo) $ "ZA3_CODVEN;ZA3_NOME;"})
     Local oStruGrid    := fModStruct()
  
+
+    oStruCab:SetProperty('ZA3_CODVEN',MODEL_FIELD_OBRIGAT,.T.)
+    
     //Monta o modelo de dados, e na Pós Validação, informa a função fValidGrid
     oModel := MPFormModel():New('ZMOD2M', /*bPreValidacao*/, {|oModel| fValidGrid(oModel)}, /*bCommit*/, /*bCancel*/ )
  
