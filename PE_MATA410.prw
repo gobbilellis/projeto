@@ -4,7 +4,6 @@
 
 User Function M410AGRV
 
-	// Local nPosPrcUnit    := Ascan(aHeader, {|x| AllTrim(x[2]) == "C6_PRUNIT"})
 	Local nPosPrcVen    := Ascan(aHeader, {|x| AllTrim(x[2]) == "C6_PRCVEN"})
 	Local nPosDes    := Ascan(aHeader, {|x| AllTrim(x[2]) == "C6_DESCONT"})
 	Local nPosVlDes    := Ascan(aHeader, {|x| AllTrim(x[2]) == "C6_VALDESC"})
@@ -16,20 +15,17 @@ User Function M410AGRV
 	Local nTotalPrcVen := 0
 	Local nTotalPrcUnit := 0
 	Local nTotalDesc := 0
-	Local cAux := ""
+	Local cCodProdAux := ""
 
 	Private cComAuto := AllTrim(M->C5_YCOMAUT) // Recebendo o valor se a comissão vai ser aplicada automáticamente 1 para Automático 2 para Manual
 	Private cZeraDesc := AllTrim(M->C5_YDESCNF) // Recebendo o valor se o desconto vai ser levado para a nota fiscal ou não. Valor 1 para Sim e Valor 2 para não
 
 	//Se a comissão tiver como automático, executo o fonte fazendo as tratativas
-	If(cComAuto == '1') //Opção Automática no Cálculo de comissão.
+	If(cComAuto == '1') // Opção Automática no Cálculo de comissão.
 		For nX := 1 to Len(aCols)
 			nTotalPrcVen	+= aCols[nX, nPosPrcVen]
-			cAux := aCols[nX, cCodProd]
-			// nTotalPrcUnit 	+= aCols[nX, nPosPrcUnit]
-			nTotalPrcUnit 	+= POSICIONE("SB1",1,xFilial("SB1")+cAux,"B1_PRV1")              
-			// nTotalPrcUnit 	+= POSICIONE("SB1",1,xFilial("SB1")+SB1->B1_COD,"B1_PRV1")              
-
+			cCodProdAux := aCols[nX, cCodProd]
+			nTotalPrcUnit 	+= POSICIONE("SB1",1,xFilial("SB1")+cCodProdAux,"B1_PRV1")
 		next
 
 		nTotalDesc:= 	(-100*(nTotalPrcVen / nTotalPrcUnit))+100
@@ -62,12 +58,12 @@ Static Function ZCOMIS(cVend, nDesc)
 	Local cSql   	  := ""
 	Local nComis	  := 0
 	
-	cSql := "SELECT ZA3_COMIS "
+	cSql := "SELECT TOP 1 ZA3_COMIS "
 	cSql += "FROM " + RetSqlName("ZA3")+ " ZA3 "
-	cSql += "WHERE ZA3_DESC = '" 	+ cValToChar(nDesc) + "'"
+	cSql += "WHERE ZA3_DESC < '" 	+ cValToChar(nDesc) + "'"
 	cSql += "AND	ZA3_CODVEN = '" + cVend + "'"
 	cSql += "AND D_E_L_E_T_ = ''" 
-
+	cSql += "ORDER BY ZA3_DESC DESC "
 	TCQUERY cSql NEW ALIAS qSQuery
 			
 	While qSQuery->(!eof())	
@@ -76,5 +72,5 @@ Static Function ZCOMIS(cVend, nDesc)
 	EndDo    
 			
 	qSQuery->(DbCloseArea())
-
+	
 Return nComis
